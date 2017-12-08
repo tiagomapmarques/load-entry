@@ -1,0 +1,31 @@
+{
+  "name": "load-entry",
+  "version": "1.0.0",
+  "description": "Package to offload the execution of a function, object or module to after the document finished loading",
+  "main": "./lib/index.js",
+  "scripts": {
+    "clean": "rimraf ./lib && rimraf ./coverage",
+    "clean:packages": "echo ==== IGNORE THIS NEXT ERROR ==== && rimraf ./node_modules",
+    "build": "npm run clean && tsc -p ./tsconfig.json && npm run build:clean",
+    "build:clean": "rimraf ./lib/types.js",
+    "lint": "tslint -p tsconfig.lint.json -c tslint.json -e **/node_modules/**",
+    "packages": "ncu",
+    "packages:write": "ncu -u",
+    "packages:reset": "rimraf package-lock.json && npm run clean:packages",
+    "test": "npm run build && jest --no-cache --config jest.json",
+    "test:watch": "npm run build && jest --no-cache --config jest.json --watchAll"
+  },
+  "author": "Tiago Marques",
+  "license": "MIT",
+  "repository": "https://github.com/tiagomapmarques/quotifier",
+  "devDependencies": {
+    "@types/jest": "~21.1",
+    "jest": "~21.2",
+    "npm-check-updates": "~2.13",
+    "rimraf": "~2.6",
+    "ts-jest": "~21.2",
+    "tslint": "~5.8",
+    "tslint-config-standard": "~7.0",
+    "typescript": "~2.6"
+  }
+}
