@@ -28,7 +28,8 @@ const loadEntry = (entry: Module, config?: ConfigurationInput | string) => {
     ...((typeof config === 'string' ? { init: config } : config) || {}),
   };
 
-  if (document && document.addEventListener && finalConfig.event) {
+  // tslint:disable-next-line:strict-type-predicates
+  if (typeof document !== 'undefined' && document.addEventListener && finalConfig.event) {
     document.addEventListener(finalConfig.event, () => executeEntry(entry, finalConfig.init));
   } else {
     executeEntry(entry, finalConfig.init);
