@@ -87,7 +87,6 @@
       "allow-undefined-check"
     ],
     "type-literal-delimiter": true,
-    "typeof-compare": true,
     "variable-name": [
       true,
       "ban-keywords",

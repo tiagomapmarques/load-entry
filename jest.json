@@ -25,7 +25,6 @@
       "tsConfigFile": "tsconfig.spec.json"
     }
   },
-  "mapCoverage": true,
   "moduleFileExtensions": [
     "ts",
     "js"

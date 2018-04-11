@@ -1,3 +1,4 @@
+import { ConfigurationInput, Module } from './types';
 import * as tsLoadEntry from './';
 import * as jsLoadEntry from '../lib';
 
@@ -8,55 +9,89 @@ describe('load-entry', () => {
       test: 'works for a function',
       inputGetter: () => testFunction,
       expectsError: false,
-      customInitFunction: undefined,
+      browser: true,
+      config: undefined,
     },
     {
       test: 'works for the defaut object',
       inputGetter: () => ({ default: testFunction }),
       expectsError: false,
-      customInitFunction: undefined,
+      browser: true,
+      config: undefined,
     },
     {
       test: 'works for the named exports',
       inputGetter: () => ({ myExport: testFunction }),
       expectsError: false,
-      customInitFunction: undefined,
+      browser: true,
+      config: undefined,
     },
     {
       test: 'works for the named exported objects',
       inputGetter: () => ({ myExport: { init: testFunction } }),
       expectsError: false,
-      customInitFunction: undefined,
+      browser: true,
+      config: undefined,
     },
     {
-      test: 'works for the named exported custom objects',
+      test: 'works for custom objects (string)',
       inputGetter: () => ({ myExport: { myInit: testFunction } }),
       expectsError: false,
-      customInitFunction: 'myInit',
+      browser: true,
+      config: 'myInit',
+    },
+    {
+      test: 'works for custom objects (object)',
+      inputGetter: () => ({ myExport: { myInit: testFunction } }),
+      expectsError: false,
+      browser: true,
+      config: {
+        init: 'myInit',
+      },
+    },
+    {
+      test: 'works without document object',
+      inputGetter: () => testFunction,
+      expectsError: false,
+      browser: false,
+      config: undefined,
+    },
+    {
+      test: 'works without a defined event',
+      inputGetter: () => testFunction,
+      expectsError: false,
+      browser: true,
+      config: {
+        event: undefined,
+      },
     },
     {
       test: 'throws an error if nothing is exported',
       inputGetter: () => ({ myExport: { notAnInitFunction: undefined } }),
       expectsError: true,
-      customInitFunction: undefined,
+      browser: true,
+      config: undefined,
     },
   ];
   let thrownError: Error;
 
-  beforeEach(() => {
-    testFunction = jest.fn();
-    document.addEventListener = jest.fn((_, callback) => callback());
-  });
-
-  const executeTests = (expectsError: boolean) => {
+  const executeTests = (expectsError: boolean, browser: boolean, config: ConfigurationInput) => {
     afterEach(() => {
       testFunction.mockClear();
     });
 
-    it(`waits for document load`, () => {
-      expect((document.addEventListener as jest.Mock).mock.calls).toHaveLength(1);
-      expect((document.addEventListener as jest.Mock).mock.calls[0][0]).toEqual('DOMContentLoaded');
-    });
+    if (browser) {
+      if (!(Object.keys(config || {}).indexOf('event') >= 0) || (config || {}).event) {
+        it(`waits for document event`, () => {
+          expect((document.addEventListener as jest.Mock).mock.calls).toHaveLength(1);
+          expect((document.addEventListener as jest.Mock).mock.calls[0][0]).toEqual((config || {}).event || 'DOMContentLoaded');
+        });
+      } else {
+        it(`does not wait for document event`, () => {
+          expect((document.addEventListener as jest.Mock).mock.calls).toHaveLength(0);
+        });
+      }
+    }
 
     if (!expectsError) {
       it(`executes the given object`, () => {
@@ -73,45 +108,45 @@ describe('load-entry', () => {
     }
   };
 
-  testData.forEach(({ test, inputGetter, expectsError, customInitFunction }) => {
+  const executeFor = (
+    loadEntry: Function,
+    inputGetter: () => Module,
+    expectsError: boolean,
+    browser: boolean,
+    config?: ConfigurationInput | string,
+  ) => {
+    beforeEach(() => {
+      try {
+        if (config === undefined) {
+          loadEntry(inputGetter());
+        } else {
+          loadEntry(inputGetter(), config);
+        }
+      } catch (error) {
+        thrownError = error;
+      }
+    });
+
+    executeTests(expectsError, browser, typeof config === 'string' ? { init: config } : config);
+  };
+
+  testData.forEach(({ test, inputGetter, expectsError, browser, config }) => {
     describe(test, () => {
-      let input;
+      let originalAddEventListener;
 
       beforeEach(() => {
-        input = inputGetter();
+        originalAddEventListener = document.addEventListener;
+        testFunction = jest.fn();
+        document.addEventListener = browser ? jest.fn((_, callback) => callback()) : null;
       });
 
-      describe('on typescript', () => {
-        beforeEach(() => {
-          try {
-            if (!customInitFunction) {
-              tsLoadEntry.default(input);
-            } else {
-              tsLoadEntry.default(input, customInitFunction);
-            }
-          } catch (error) {
-            thrownError = error;
-          }
-        });
-
-        executeTests(expectsError);
+      afterEach(() => {
+        document.addEventListener = originalAddEventListener;
       });
 
-      describe('on javascript', () => {
-        beforeEach(() => {
-          try {
-            if (!customInitFunction) {
-              jsLoadEntry.default(input);
-            } else {
-              jsLoadEntry.default(input, customInitFunction);
-            }
-          } catch (error) {
-            thrownError = error;
-          }
-        });
+      describe('on typescript', () => executeFor(tsLoadEntry.default, inputGetter, expectsError, browser, config));
 
-        executeTests(expectsError);
-      });
+      describe('on javascript', () => executeFor(jsLoadEntry.default, inputGetter, expectsError, browser, config));
     });
   });
 });

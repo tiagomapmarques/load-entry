@@ -3,11 +3,22 @@
     "target": "es5",
     "outDir": "./lib",
     "module": "commonjs",
+
     "noEmitOnError": true,
+    "declaration": false,
+    "removeComments": true,
+    "experimentalDecorators": true,
+    "forceConsistentCasingInFileNames": true,
+
     "noImplicitAny": true,
-    "noImplicitReturns": true,
-    "noUnusedLocals": true,
     "strictNullChecks": true,
+    "alwaysStrict": true,
+    "noUnusedLocals": true,
+    "noImplicitThis": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+
     "typeRoots": [ "typings" ]
   },
   "include": [

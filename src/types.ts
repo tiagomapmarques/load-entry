@@ -10,3 +10,13 @@ export interface ESModule extends IndexObject<ModuleObject | undefined> {
 }
 
 export type Module = Function | ESModule;
+
+export interface ConfigurationInput {
+  event?: string;
+  init?: string;
+}
+
+export interface Configuration {
+  event: string;
+  init: string;
+}

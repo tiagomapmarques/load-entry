@@ -1,4 +1,4 @@
-import { Module, ModuleObject } from './types';
+import { Module, ModuleObject, Configuration, ConfigurationInput } from './types';
 
 const execute = (module: ModuleObject, defaultInit: string) => {
   if (typeof module === 'function') {
@@ -11,7 +11,7 @@ const execute = (module: ModuleObject, defaultInit: string) => {
   }
 };
 
-const loadEntry = (entry: Module, defaultInit = 'init') => document.addEventListener('DOMContentLoaded', () => {
+const executeEntry = (entry: Module, defaultInit: string) => {
   if (typeof entry === 'function') {
     execute(entry, defaultInit);
   } else if (entry.default) {
@@ -19,7 +19,21 @@ const loadEntry = (entry: Module, defaultInit = 'init') => document.addEventList
   } else {
     Object.keys(entry).forEach((key) => entry[key] && execute(entry[key] as ModuleObject, defaultInit));
   }
-});
+};
+
+const loadEntry = (entry: Module, config?: ConfigurationInput | string) => {
+  const finalConfig: Configuration = {
+    event: 'DOMContentLoaded',
+    init: 'init',
+    ...((typeof config === 'string' ? { init: config } : config) || {}),
+  };
+
+  if (document && document.addEventListener && finalConfig.event) {
+    document.addEventListener(finalConfig.event, () => executeEntry(entry, finalConfig.init));
+  } else {
+    executeEntry(entry, finalConfig.init);
+  }
+};
 
 // tslint:disable-next-line:no-default-export
 export default loadEntry;

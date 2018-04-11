@@ -1,8 +1,17 @@
 # load-entry
-Package to offload the execution of a function, object or module to after the
-document finished loading.
+Package to offload the execution of a function, object or module.
 
-## Basic Usage
+By default, if there's a document (i.e. on browsers), it will wait for the
+'DOMContentLoaded' event and then execute the given object. If not it will
+execute the object immediately.
+
+## Why I use it on the browser
+To create modules that are testable in any scenario.
+
+## Why I use it on a NodeJs app
+To facilitate module running and unit testing.
+
+## Basic Usage (browser)
 
 ```javascript
 // index.js -> app entry file
@@ -14,8 +23,6 @@ const myEntryPoint = () => {
 };
 
 loadEntry(myEntryPoint);
-// want to create a proper test for this entry point?
-// just mock 'load-entry' and run/access it on demand (on a beforeEach?)
 ```
 
 ## More examples
@@ -37,6 +44,8 @@ const myEntryPoint = {
   }
 };
 loadEntry(myEntryPoint, 'myInit');
+// OR
+loadEntry(myEntryPoint, { init: 'myInit' });
 
 // Example 3: module with default as export
 // entry.js
@@ -53,12 +62,21 @@ export const myEntryPoint = () => {
   App.run();
 };
 export const mySecondEntryPoint = () => {
-  console.log('This is also run!');
+  console.log('This also runs!');
 };
 // index.js
 import Entry from './entry';
 loadEntry(Entry);
-```
 
-## Why I use it
-To create app entry points that are modular and testable.
+// Example 5: run after a custom event is triggered
+const myEntryPoint = () => {
+  App.run();
+};
+loadEntry(myEntryPoint, { event: 'MyCustomEvent' });
+
+// Example 6: run immediately (in a browser environment)
+const myEntryPoint = () => {
+  App.run();
+};
+loadEntry(myEntryPoint, { event: null });
+```

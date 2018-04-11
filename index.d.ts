@@ -10,7 +10,12 @@ declare module 'load-entry' {
     default?: ModuleObject;
   }
 
-  type Module = Function | ESModule;
+  export type Module = Function | ESModule;
 
-  export default function (entry: Module, defaultInit?: string): void;
+  export interface Configuration {
+    event?: string;
+    init?: string;
+  }
+
+  export default function (entry: Module, config?: Configuration): void;
 }
